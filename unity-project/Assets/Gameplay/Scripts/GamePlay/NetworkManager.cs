@@ -1,0 +1,54 @@
+using Core;
+using kcp2k;
+using Mirror;
+using Newtonsoft.Json.Linq;
+using UI;
+
+namespace GamePlay
+{
+    public class NetworkManagerCustom : NetworkManager
+    {
+        public override void Start()
+        {
+            if (StoredManager.IsDebug)
+            {
+                gameObject.AddComponent<NetworkManagerHUD>();
+                return;
+            }
+
+            UnityEngine.Debug.Log("START GAME");
+
+
+            // If headless, mostly dedicated server
+            if (Mirror.Utils.IsHeadless())
+            {
+                UnityEngine.Debug.Log("START SERVER");
+
+                // Retrieve command line arguments
+                // Deserialize into a JObject
+                JObject parsedJson = JObject.Parse(StoredManager.CommandLineArgs[1]);
+
+                // Accessing values dynamically
+                (transport as KcpTransport).port = parsedJson["port"].Value<ushort>();
+                var players = parsedJson["players"].Value<JArray>().ToObject<PlayerRoomInfo[]>();
+
+                // Start the server with the custom port
+                StartServer();
+
+                GameManager.Instance.StartGameServer(players);
+            }
+            else
+            {
+                UnityEngine.Debug.Log("START CLIENT");
+
+                networkAddress = StoredManager.ServerAddress;
+                (transport as KcpTransport).port = StoredManager.ServerPort;
+
+                StartClient();
+            }
+        }
+        // public override void OnServerAddPlayer(NetworkConnectionToClient conn)
+        // {
+        // }
+    }
+}

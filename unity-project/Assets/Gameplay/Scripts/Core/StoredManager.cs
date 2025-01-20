@@ -1,0 +1,18 @@
+using System;
+using UI;
+
+namespace Core
+{
+    // Use as goblal variables that can access from every where
+    public class StoredManager
+    {
+        public static string WebSocketServer = "ws://192.168.1.75:8080";
+        public static string ServerAddress = "127.0.0.1";
+        public static ushort ServerPort = 7777;
+        public static string ClientToken = "";
+        public static string CurrentRoomId = "";
+        public static RoomData roomData = new();
+        public static readonly bool IsDebug = false;
+        public static string[] CommandLineArgs = Environment.GetCommandLineArgs();
+    }
+}
