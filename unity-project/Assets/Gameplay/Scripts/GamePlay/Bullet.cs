@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using Mirror;
 using UnityEngine;
 
 namespace GamePlay
 {
-    public class Bullet : MonoBehaviour
+    public class Bullet : NetworkBehaviour
     {
         public float speed = 20f;  // Bullet speed
         public float damage = 0;    // Bullet damage
@@ -29,8 +30,10 @@ namespace GamePlay
 
         void OnTriggerEnter(Collider other)
         {
-            PlayerHealth health = other.GetComponentInParent<PlayerHealth>();
+            if (!isServer) return;
             
+            PlayerHealth health = other.GetComponentInParent<PlayerHealth>();
+
             // Check if the bullet hits the player
             if (other.gameObject.layer == LayerMask.NameToLayer("Player"))
             {

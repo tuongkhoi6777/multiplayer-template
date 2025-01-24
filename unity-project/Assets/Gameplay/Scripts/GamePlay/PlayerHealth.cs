@@ -1,10 +1,14 @@
+using Mirror;
 using UnityEngine;
 
 namespace GamePlay
 {
-    public class PlayerHealth : MonoBehaviour
+    public class PlayerHealth : NetworkBehaviour
     {
+        [SyncVar]
         public float MaxHealth = 100;
+
+        [SyncVar]
         public float CurrentHealth = 100;
 
         public void Init()

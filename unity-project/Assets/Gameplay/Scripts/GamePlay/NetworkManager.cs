@@ -16,14 +16,9 @@ namespace GamePlay
                 return;
             }
 
-            UnityEngine.Debug.Log("START GAME");
-
-
             // If headless, mostly dedicated server
             if (Mirror.Utils.IsHeadless())
             {
-                UnityEngine.Debug.Log("START SERVER");
-
                 // Retrieve command line arguments
                 // Deserialize into a JObject
                 JObject parsedJson = JObject.Parse(StoredManager.CommandLineArgs[1]);
@@ -39,16 +34,16 @@ namespace GamePlay
             }
             else
             {
-                UnityEngine.Debug.Log("START CLIENT");
-
                 networkAddress = StoredManager.ServerAddress;
                 (transport as KcpTransport).port = StoredManager.ServerPort;
 
                 StartClient();
             }
         }
-        // public override void OnServerAddPlayer(NetworkConnectionToClient conn)
-        // {
-        // }
+
+        public override void OnServerAddPlayer(NetworkConnectionToClient conn)
+        {
+            GameManager.Instance.OnPlayerJoin(conn);
+        }
     }
 }

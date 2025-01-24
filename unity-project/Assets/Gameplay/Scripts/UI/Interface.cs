@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Core;
 using Newtonsoft.Json.Linq;
 
@@ -45,5 +47,12 @@ namespace UI
             name = Name;
             team = Team;
         }
+    }
+
+    [Serializable]
+    public class Team
+    {
+        public List<string> players = new();
+        public byte score = 0;
     }
 }

@@ -51,15 +51,10 @@ namespace UI
 #endif
 
             // TODO: get server address from steam cloud and steam token from steam SDK
-            string token = Guid.NewGuid().ToString();
+            string token = SystemInfo.deviceUniqueIdentifier;
             await WebSocketClient.StartAsync(StoredManager.WebSocketServer, token);
 
             GetAllRooms();
-        }
-
-        void GetServerAddress()
-        {
-            StoredManager.WebSocketServer = StoredManager.CommandLineArgs[1];
         }
 
         public async void GetAllRooms()
