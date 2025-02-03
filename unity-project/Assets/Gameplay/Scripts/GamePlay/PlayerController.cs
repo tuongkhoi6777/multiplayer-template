@@ -23,9 +23,6 @@ namespace GamePlay
             Animator = GetComponentInChildren<Animator>();
             PlayerCamera = GetComponentInChildren<Camera>();
             Health = GetComponent<PlayerHealth>();
-
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
         }
 
         void Start()

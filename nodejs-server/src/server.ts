@@ -94,7 +94,6 @@ wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
         sendResponse(ws, 'connection', false, "Same user connect from other session!");
         ws.close();
     }
-
     handler.onConnectToServer(player, onConnectFromNewSession);
 
     ws.on('message', (data: WebSocket.Data) => {

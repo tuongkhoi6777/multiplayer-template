@@ -3,6 +3,7 @@ using kcp2k;
 using Mirror;
 using Newtonsoft.Json.Linq;
 using UI;
+using UnityEngine;
 
 namespace GamePlay
 {
@@ -10,6 +11,9 @@ namespace GamePlay
     {
         public override void Start()
         {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            
             if (StoredManager.IsDebug)
             {
                 gameObject.AddComponent<NetworkManagerHUD>();
@@ -44,6 +48,14 @@ namespace GamePlay
         public override void OnServerAddPlayer(NetworkConnectionToClient conn)
         {
             GameManager.Instance.OnPlayerJoin(conn);
+        }
+
+        public override void OnClientDisconnect()
+        {
+            // TODO: show popup disconnect
+            Debug.Log("Disconnected from server due to network problems.");
+
+            base.OnClientDisconnect();
         }
     }
 }

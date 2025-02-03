@@ -78,23 +78,21 @@ namespace Core
                 // Handle notifications (non-response messages)
                 switch (type)
                 {
-                    case "connection":
-                        // TODO: handle connection fail
-                        // if not success show popup message, exit game if press button OK
-                        // there will be 2 case when connection fail: token invalid or new session connect
+                    case "connection": // TODO: Handle connection to websocket
+                        // If success is false show popup with message, exit game if press button OK
+                        // There will be multiple case when connection failed: token invalid, network timeout 
+                        // or connected from new session
                         break;
-                    case "rejoinGame":
-                        // TODO: switch to gameplay scene from main
+                    case "reconnectGame": 
+                        // TODO: Handle reconnect to game if client disconnect
                         break;
                     case "startGame":
-                        // TODO: switch to gameplay scene from lobby
                         EventManager.emitter.Emit(EventManager.START_GAME, data);
                         break;
                     case "playerKicked":
                         // TODO: switch to main scene and show popup user has been kicked by host
                         break;
                     case "roomUpdate":
-                        // TODO: update room status (players join or out)
                         EventManager.emitter.Emit(EventManager.ROOM_UPDATE, data);
                         break;
                 }
