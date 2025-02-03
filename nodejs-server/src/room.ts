@@ -1,6 +1,8 @@
-import { execFile } from 'child_process';
 import path from 'path';
+import * as WebSocket from 'ws';
+import { execFile } from 'child_process';
 import { localIp, PLAYER, removeRoomAndReleasePort, sendMessage, USER_INFO } from './server';
+import { handler } from './handleClientConnection';
 
 const executablePathWindows = path.resolve(__dirname, '../build-server/FPS.exe');
 const executablePathLinux = path.resolve(__dirname, '../build-linux-server/build-linux-server.x86_64');
@@ -28,14 +30,9 @@ export class Room {
         };
     }
 
-    // Create list of websockets for all players from both teams
-    getWebSocketList() {
-        return this.players.map(player => player.data.ws);
-    }
-
     // Call whenever room is updated, like when a player is added or removed
     onRoomUpdate() {
-        let wsList = this.getWebSocketList();
+        let wsList = this.players.map(player => player.data.ws);
         let data = this.getRoomInfo();
 
         wsList.forEach(ws => sendMessage(ws, {
@@ -225,22 +222,35 @@ export class Room {
         console.log("SERVER_FORCE_READY");
 
         // Notify players to connect to the Mirror server
-        let wsList = this.getWebSocketList();
-        wsList.forEach(ws => sendMessage(ws, {
-            type: "startGame",
+        this.players.forEach((player) => {
+            this.sendConnectRoomInfo(player.data.ws, "startGame");
+
+            handler.onRoomStart(player.data.userInfo.userId, (user) => {
+                this.sendConnectRoomInfo(player.data.ws, "rejoinGame");
+                this.addPlayer(user);
+            });
+        })
+    }
+
+    sendConnectRoomInfo(ws: WebSocket, type: string) {
+        sendMessage(ws, {
+            type,
             data: {
                 serverIp: localIp,
                 serverPort: this.port,
             },
             success: true,
             message: ""
-        }));
+        });
     }
 
     // End the game
     endGame() {
         this.isGameStarted = false;
 
+        this.players.forEach((player) => {
+            handler.onRoomEnd(player.data.userInfo.userId);
+        });
         // Optional cleanup logic for ending the game can go here, such as resetting game state or notifying players.
     }
 }

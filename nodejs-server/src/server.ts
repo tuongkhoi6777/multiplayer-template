@@ -4,6 +4,7 @@ import { validateToken } from './authentication';
 import { IncomingMessage } from 'http';
 import * as os from 'os';
 import * as crypto from 'crypto';
+import { handler } from './handleClientConnection';
 
 export interface USER_INFO {
     userId: string,
@@ -79,17 +80,22 @@ wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
     const token = getToken(req.url);
     const info = validateToken(token);
 
+    // check if user token is valid and send response
     if (!token || !info) {
-        sendMessage(ws, {
-            type: 'connection',
-            data: null,
-            success: false,
-            message: "Invalid token!"
-        });
+        sendResponse(ws, 'connection', false, "Invalid token!");
         return;
     }
 
     let player: PLAYER = { ws, userInfo: info, currentRoomId: null };
+    sendResponse(ws, 'connection', true, "Success!", player.userInfo);
+
+    // if same user connected from new session, disconnect the old one
+    let onConnectFromNewSession = () => {
+        sendResponse(ws, 'connection', false, "Same user connect from other session!");
+        ws.close();
+    }
+
+    handler.onConnectToServer(player, onConnectFromNewSession);
 
     ws.on('message', (data: WebSocket.Data) => {
         const msg = typeof data === "string" ? data : data.toString('utf8')
@@ -137,6 +143,8 @@ wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
     });
 
     ws.on('close', () => {
+        // handle player disconnect
+        handler.onDisconnectFromServer(info.userId, onConnectFromNewSession);
         handlePlayerDisconnect(player);
     });
 });

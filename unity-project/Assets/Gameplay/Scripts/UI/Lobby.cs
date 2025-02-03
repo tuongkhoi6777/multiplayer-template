@@ -51,7 +51,6 @@ namespace UI
 
         async void ChangeTeam()
         {
-
             try
             {
                 int currentTeam = Array.Find(StoredManager.roomData.players, player => player.id == StoredManager.ClientToken).team;

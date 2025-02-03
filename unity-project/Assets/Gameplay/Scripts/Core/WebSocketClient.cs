@@ -79,10 +79,15 @@ namespace Core
                 switch (type)
                 {
                     case "connection":
-                        // TODO: error handle here, maybe token is invalid
+                        // TODO: handle connection fail
+                        // if not success show popup message, exit game if press button OK
+                        // there will be 2 case when connection fail: token invalid or new session connect
+                        break;
+                    case "rejoinGame":
+                        // TODO: switch to gameplay scene from main
                         break;
                     case "startGame":
-                        // TODO: switch to gameplay scene
+                        // TODO: switch to gameplay scene from lobby
                         EventManager.emitter.Emit(EventManager.START_GAME, data);
                         break;
                     case "playerKicked":
