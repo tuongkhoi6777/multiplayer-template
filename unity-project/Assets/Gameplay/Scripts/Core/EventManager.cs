@@ -19,6 +19,9 @@ namespace Core
         // Events that using in lobby scene
         public static string ROOM_UPDATE = "ROOM_UPDATE";
         public static string START_GAME = "START_GAME";
+
+        // Global events that using in multiple scenes
+        public static string UPDATE_CURSOR = "UPDATE_CURSOR";
     }
     
     public class EventEmitter

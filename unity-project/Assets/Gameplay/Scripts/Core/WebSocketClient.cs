@@ -25,7 +25,26 @@ namespace Core
 
             Uri uri = new($"{server}?token={token}");
 
-            await ws.ConnectAsync(uri, CancellationToken.None);
+            try
+            {
+                var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10)); // Timeout 10s
+                await ws.ConnectAsync(uri, cts.Token);
+            }
+            catch (WebSocketException ex)
+            {
+                // websocket error
+                PopupManager.ShowError($"WebSocket connection failed: {ex.Message}");
+            }
+            catch (TaskCanceledException)
+            {
+                // timeout error
+                PopupManager.ShowError("Connection timed out.");
+            }
+            catch (Exception ex)
+            {
+                // other error
+                PopupManager.ShowError($"Unexpected error: {ex.Message}");
+            }
 
             // Start receiving messages asynchronously
             await ReceiveMessagesAsync();
@@ -83,7 +102,7 @@ namespace Core
                         // There will be multiple case when connection failed: token invalid, network timeout 
                         // or connected from new session
                         break;
-                    case "reconnectGame": 
+                    case "reconnectGame":
                         // TODO: Handle reconnect to game if client disconnect
                         break;
                     case "startGame":

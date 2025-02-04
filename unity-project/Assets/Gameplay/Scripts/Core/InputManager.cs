@@ -22,8 +22,6 @@ namespace Core
             {
                 EventManager.emitter.Emit(EventManager.PLAYER_FIRE);
             }
-
-
         }
     }
 }
