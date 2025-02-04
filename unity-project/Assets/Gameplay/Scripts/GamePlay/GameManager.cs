@@ -28,6 +28,8 @@ namespace GamePlay
         void Awake()
         {
             Instance = this;
+
+            CursorManager.HideCursor();
         }
 
         public async void StartGameServer(PlayerRoomInfo[] playerRoomInfos)
@@ -94,6 +96,8 @@ namespace GamePlay
 
             // TODO: show end scene or result scene shere
             SceneManagerCustom.Instance.LoadScene(SceneManagerCustom.SceneLobby);
+
+            CursorManager.ShowCursor();
         }
 
         public void EndRoundServer()

@@ -21,7 +21,6 @@ namespace Core
         public static string START_GAME = "START_GAME";
 
         // Global events that using in multiple scenes
-        public static string UPDATE_CURSOR = "UPDATE_CURSOR";
     }
     
     public class EventEmitter

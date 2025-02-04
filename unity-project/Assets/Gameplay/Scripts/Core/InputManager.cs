@@ -7,9 +7,18 @@ namespace Core
         // Don't create more than 1 instance, it will emit the event multiple times
         public static Vector2 GetMouse() => new(Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y"));
         public static Vector2 GetMovement() => new(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+        private static bool instanceExists = false;
         private void Awake()
         {
-            DontDestroyOnLoad(gameObject);
+            if (instanceExists)
+            {
+                Destroy(gameObject);
+            }
+            else
+            {
+                instanceExists = true;
+                DontDestroyOnLoad(gameObject);
+            }
         }
         void Update()
         {
