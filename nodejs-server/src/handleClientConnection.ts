@@ -1,45 +1,59 @@
 import EventEmitter from "events";
-import { PLAYER } from "./server";
+import { PLAYER, sendResponse } from "./server";
+import { Room } from "./room";
+import * as WebSocket from 'ws';
 
 const emitter = new EventEmitter();
 
-class HandleClientConnection {
-    getRejoinRoomEventName(userId: string) {
+class ClientConnectionHandler {
+    generateRejoinRoomEventName(userId: string) {
         return `RejoinRoom:${userId}`;
     }
 
-    getReconnectServerEventName(userId: string) {
+    generateReconnectEventName(userId: string) {
         return `ReconnectServer:${userId}`;
     }
 
-    // when client reconnect to websocket with new session, disconnect the old one
-    onConnectToServer(user: PLAYER, listener: () => void) {
-        let eventName = this.getReconnectServerEventName(user.userInfo.userId);
+    // Handle client reconnecting to WebSocket with a new session by disconnecting the old one
+    handleClientReconnect(user: PLAYER, ws: WebSocket) {
+        let eventName = this.generateReconnectEventName(user.userInfo.userId);
         emitter.emit(eventName);
+
+        let listener = () => {
+            // If the same user connects from a new session, disconnect the old one
+            sendResponse(ws, 'connection', false, "Same user connected from another session!");
+            ws.close();
+        };
         emitter.on(eventName, listener);
 
-        // emit rejoin room if player has disconnected when joined a room
-        const rejoinEventName = this.getRejoinRoomEventName(user.userInfo.userId);
+        // Emit rejoin event if the player was in a room before disconnecting
+        const rejoinEventName = this.generateRejoinRoomEventName(user.userInfo.userId);
         emitter.emit(rejoinEventName, user);
+
+        return listener;
     }
 
-    // when client disconnect, remove reconnect listener
-    onDisconnectFromServer(userId: string, listener: () => void) {
-        let eventName = this.getReconnectServerEventName(userId);
+    // Remove reconnect listener when the client disconnects
+    removeReconnectListener(userId: string, listener: () => void) {
+        let eventName = this.generateReconnectEventName(userId);
         emitter.off(eventName, listener);
     }
 
-    // add rejoin listener when client join room, so when client reconnect to server, they can join room directly
-    onRoomStart(userId: string, listener: (user: PLAYER) => void) {
-        const eventName = this.getRejoinRoomEventName(userId);
-        emitter.on(eventName, listener);
+    // Register a listener for rejoining when a client joins a room
+    registerRejoinListener(player: PLAYER, room: Room) {
+        const eventName = this.generateRejoinRoomEventName(player.userInfo.userId);
+
+        emitter.on(eventName, (user) => {
+            room.sendServerConnectionInfo(player.ws, "rejoinGame");
+            room.addPlayer(user);
+        });
     }
 
-    // when client leave room, remove all rejoin listener
-    onRoomEnd(userId: string) {
-        const eventName = this.getRejoinRoomEventName(userId);
+    // Remove all rejoin listeners when a client leaves a room
+    clearRejoinListeners(userId: string) {
+        const eventName = this.generateRejoinRoomEventName(userId);
         emitter.removeAllListeners(eventName);
     }
 }
 
-export const handler = new HandleClientConnection();
+export const handler = new ClientConnectionHandler();

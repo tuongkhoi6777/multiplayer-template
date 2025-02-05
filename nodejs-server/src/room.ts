@@ -8,10 +8,9 @@ const executablePathWindows = path.resolve(__dirname, '../build-server/FPS.exe')
 const executablePathLinux = path.resolve(__dirname, '../build-linux-server/build-linux-server.x86_64');
 
 export class Room {
-    players: { team: number, data: PLAYER }[] = []; // value of team is 0 and 1
+    players: { team: number, data: PLAYER }[] = []; // Value of team is 0 or 1
     isGameStarted: boolean = false;
 
-    // Constructor to initialize properties
     constructor(public roomId: string, public port: number, public host: PLAYER, public name: string) {
         this.addPlayer(host);
     }
@@ -20,18 +19,16 @@ export class Room {
         return {
             roomName: this.name,
             host: this.host.userInfo.userId,
-            players: this.players.map(player => {
-                return {
-                    id: player.data.userInfo.userId,
-                    name: player.data.userInfo.name,
-                    team: player.team,
-                }
-            })
+            players: this.players.map(player => ({
+                id: player.data.userInfo.userId,
+                name: player.data.userInfo.name,
+                team: player.team,
+            }))
         };
     }
 
-    // Call whenever room is updated, like when a player is added or removed
-    onRoomUpdate() {
+    // Notify all players in the room about updates
+    notifyRoomUpdate() {
         let wsList = this.players.map(player => player.data.ws);
         let data = this.getRoomInfo();
 
@@ -45,136 +42,92 @@ export class Room {
 
     // Add a player to the room
     addPlayer(user: PLAYER) {
-        // Check if player has already joined
-        let playerList = this.players.map(player => player.data.userInfo.userId);
-        if (playerList.includes(user.userInfo.userId)) {
+        if (this.players.some(player => player.data.userInfo.userId === user.userInfo.userId)) {
             return { success: false, message: "Player already joined!" };
         }
 
-        // Check if room has space for another player
         if (this.players.length >= 10) {
             return { success: false, message: "Room is full!" };
         }
 
-        // Auto-join the team with fewest players
-        let team = this.getAllTeamWithPlayers();
+        // Assign player to the team with fewer players
+        let teamIndex = this.getTeamWithFewerPlayers();
+        this.players.push({ team: teamIndex, data: user });
 
-        // Find team index that has fewest players
-        let minIndex = team.reduce((minIndex, current, index) => {
-            return current.length < team[minIndex].length ? minIndex : index;
-        }, 0);
-
-        // Add new player with team index 
-        this.players.push({ team: minIndex, data: user })
-
-        // Notify room update to all players in the room
-        this.onRoomUpdate();
-
-        // Update the user's current room ID
+        this.notifyRoomUpdate();
         user.currentRoomId = this.roomId;
 
-        // Return room info to the new player
-        return { success: true, message: "Join room successfully!" };
+        return { success: true, message: "Joined room successfully!" };
     }
 
     findPlayerIndex(userId: string) {
-        return this.players.findIndex(player => player.data.userInfo.userId == userId);
+        return this.players.findIndex(player => player.data.userInfo.userId === userId);
     }
 
-    // Change player team
-    changePlayerTeam(userId: string, teamIndex: number) {
+    // Change player’s team
+    updatePlayerTeam(userId: string, teamIndex: number) {
         let index = this.findPlayerIndex(userId);
-
-        // False if player not found
-        if (!this.players[index]) return false;
+        if (index === -1) return false;
 
         this.players[index].team = teamIndex;
-        this.onRoomUpdate();
-
+        this.notifyRoomUpdate();
         return true;
     }
 
     // Remove a player from the room
     removePlayer(userId: string, isKicked: boolean) {
-        // Try to remove player from team 1
         let index = this.findPlayerIndex(userId);
-        let result = null;
-        if (index >= 0) {
-            result = this.players.splice(index, 1)[0]
-        }
+        if (index === -1) return false;
 
-        // False if player not found
-        if (!result) return false;
+        let removedPlayer = this.players.splice(index, 1)[0];
+        removedPlayer.data.currentRoomId = null;
 
-        // Update player's current room ID to null
-        result.data.currentRoomId = null;
-
-        // Notify player if they have been kicked
         if (isKicked) {
-            sendMessage(result.data.ws, {
+            sendMessage(removedPlayer.data.ws, {
                 type: "playerKicked",
                 data: null,
                 success: true,
-                message: "You have been kicked by host!"
+                message: "You have been kicked by the host!"
             });
         }
 
-        // Check if room is empty after player removal
         if (this.isEmpty()) {
-            // If room is empty, remove room and release port
             removeRoomAndReleasePort(this.roomId, this.port);
         } else {
-            // Change host to other player if host is remove from room
             if (this.isHost(userId)) {
                 this.host = this.players[0].data;
             }
-
-            // Notify room update for other players
-            this.onRoomUpdate();
+            this.notifyRoomUpdate();
         }
 
         return true;
     }
 
-    // Check if the room is empty
     isEmpty() {
         return this.players.length === 0;
     }
 
-    // Check if the player is the host and if the game has not started
     canStartGame(userId: string): boolean {
         return this.isHost(userId) && !this.isGameStarted;
     }
 
-    // Check if the user is the host of the room
     isHost(userId: string): boolean {
         return this.host.userInfo.userId === userId;
     }
 
-    findArrayWithMinLength(arr: USER_INFO[][]): USER_INFO[] {
-        return arr.reduce((minArray, currentArray) =>
-            currentArray.length < minArray.length ? currentArray : minArray
+    getTeamWithFewerPlayers() {
+        let teams: USER_INFO[][] = [];
+        this.players.forEach(e => {
+            if (!teams[e.team]) teams[e.team] = [];
+            teams[e.team].push(e.data.userInfo);
+        });
+
+        return teams.reduce((minIndex, current, index) =>
+            current.length < teams[minIndex]?.length ? index : minIndex, 0
         );
     }
 
-    getAllTeamWithPlayers() {
-        this.players.map(player => {
-            return {
-                id: player.data.userInfo.userId,
-                name: player.data.userInfo.name,
-                team: player.team,
-            }
-        })
-        let teams: USER_INFO[][] = [];
-        this.players.forEach(e => {
-            !teams[e.team] && (teams[e.team] = [])
-            teams[e.team].push(e.data.userInfo);
-        })
-
-        return teams;
-    }
-
-    // Start the game in the room
+    // Start the game
     startGame() {
         this.isGameStarted = true;
 
@@ -183,10 +136,8 @@ export class Room {
             players: this.getRoomInfo().players,
         };
 
-        // Convert the object to a JSON string
         const jsonString = JSON.stringify(initData);
 
-        // Execute the game server process
         const mirrorServer = execFile(executablePathLinux, [jsonString, "-batchmode", "-nographics"],
             (error, stdout, stderr) => {
                 if (error) {
@@ -201,38 +152,29 @@ export class Room {
         });
 
         mirrorServer.on('exit', (code, signal) => {
-            if (code === 0) {
-                // Game exited normally
+            console.log(`Game Server exited with code ${code}, signal ${signal}`);
+            if (code !== 0) {
+                console.error(`Unexpected error while running game server.`);
             }
-
             this.endGame();
         });
-
-        // Listen for error events (if the Mirror server fails to start)
-        mirrorServer.on('error', (err) => {
-            console.error('Failed to start Mirror server:', err);
-        });
+        mirrorServer.on('error', (err) => console.error('Failed to start Mirror server:', err));
 
         setTimeout(() => {
-            this.onServerReady();
-        }, 15000)
+            this.notifyPlayersServerReady();
+        }, 15000);
     }
 
-    onServerReady() {
+    notifyPlayersServerReady() {
         console.log("SERVER_FORCE_READY");
 
-        // Notify players to connect to the Mirror server
         this.players.forEach((player) => {
-            this.sendConnectRoomInfo(player.data.ws, "startGame");
-
-            handler.onRoomStart(player.data.userInfo.userId, (user) => {
-                this.sendConnectRoomInfo(player.data.ws, "rejoinGame");
-                this.addPlayer(user);
-            });
-        })
+            this.sendServerConnectionInfo(player.data.ws, "startGame");
+            handler.registerRejoinListener(player.data, this);
+        });
     }
 
-    sendConnectRoomInfo(ws: WebSocket, type: string) {
+    sendServerConnectionInfo(ws: WebSocket, type: string) {
         sendMessage(ws, {
             type,
             data: {
@@ -244,13 +186,11 @@ export class Room {
         });
     }
 
-    // End the game
     endGame() {
         this.isGameStarted = false;
 
         this.players.forEach((player) => {
-            handler.onRoomEnd(player.data.userInfo.userId);
+            handler.clearRejoinListeners(player.data.userInfo.userId);
         });
-        // Optional cleanup logic for ending the game can go here, such as resetting game state or notifying players.
     }
 }

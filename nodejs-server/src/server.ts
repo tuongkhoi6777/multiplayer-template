@@ -83,18 +83,14 @@ wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
     // check if user token is valid and send response
     if (!token || !info) {
         sendResponse(ws, 'connection', false, "Invalid token!");
+        ws.close(); // Close the connection immediately
         return;
-    }
+    }    
 
     let player: PLAYER = { ws, userInfo: info, currentRoomId: null };
     sendResponse(ws, 'connection', true, "Success!", player.userInfo);
 
-    // if same user connected from new session, disconnect the old one
-    let onConnectFromNewSession = () => {
-        sendResponse(ws, 'connection', false, "Same user connect from other session!");
-        ws.close();
-    }
-    handler.onConnectToServer(player, onConnectFromNewSession);
+    let listener = handler.handleClientReconnect(player, ws);
 
     ws.on('message', (data: WebSocket.Data) => {
         const msg = typeof data === "string" ? data : data.toString('utf8')
@@ -143,7 +139,7 @@ wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
 
     ws.on('close', () => {
         // handle player disconnect
-        handler.onDisconnectFromServer(info.userId, onConnectFromNewSession);
+        handler.removeReconnectListener(info.userId, listener);
         handlePlayerDisconnect(player);
     });
 });
@@ -157,7 +153,7 @@ function getToken(url: string | undefined) {
 }
 
 // Helper function to send responses, with type is the request key from client
-function sendResponse(ws: WebSocket, type: string, success: boolean, message: string, data: any = null) {
+export function sendResponse(ws: WebSocket, type: string, success: boolean, message: string, data: any = null) {
     sendMessage(ws, { type, success, message, data });
 }
 
@@ -205,7 +201,7 @@ async function handleChangeTeam(ws: WebSocket, player: PLAYER, parsed: MESSAGE) 
     const room = getRoomOrNotify(ws, roomId, parsed.key);
     if (!room) return;
 
-    const success = room.changePlayerTeam(player.userInfo.userId, teamIndex);
+    const success = room.updatePlayerTeam(player.userInfo.userId, teamIndex);
     const message = success ? "Success!" : `Can't find yourself in the room!`;
     sendResponse(ws, parsed.key, success, message);
 }
@@ -288,16 +284,14 @@ function createNewRoom(player: PLAYER, name: string) {
 
 // Get all rooms details
 function getRoomDetails() {
-    let list: any[] = [];
-    rooms.forEach((room, key) => {
-        list.push({
-            roomId: key,
+    return {
+        list: Array.from(rooms.values()).map(room => ({
+            roomId: room.roomId,
             roomName: room.name,
             numOfPlayers: room.players.length,
             isStarted: room.isGameStarted,
-        });
-    });
-    return { list };
+        }))
+    };
 }
 
 // Handle cleanup, remove player from room
@@ -307,10 +301,11 @@ function handlePlayerDisconnect(player: PLAYER) {
         const room = rooms.get(player.currentRoomId);
         room && room.removePlayer(player.userInfo.userId, false);
     }
-
-    player.ws = null as any;
-    player.userInfo = null as any;
-    player = null as any;
+    
+    // Clear WebSocket and user info references properly
+    player.ws.terminate();
+    player.ws = undefined as any;
+    player.userInfo = undefined as any;
 }
 
 // Execute when all players exit room
