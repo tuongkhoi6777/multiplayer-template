@@ -13,7 +13,6 @@ namespace Core
     {
         private static ClientWebSocket ws;
         private static Dictionary<string, TaskCompletionSource<object>> responseHandlers = new();
-
         public static async Task StartAsync(string server, string token)
         {
             // TODO: get token from steam
@@ -85,11 +84,11 @@ namespace Core
 
                 if (success)
                 {
-                    tcs.SetResult(data); // Set the result on the promise
+                    tcs.SetResult(data); // Set the result on the promise similar with resolve promise
                 }
                 else
                 {
-                    tcs.SetException(new Exception(message)); // Set the error on the promise
+                    tcs.SetException(new Exception(message)); // Set the error on the promise similar with reject promise
                 }
             }
             else
@@ -97,10 +96,12 @@ namespace Core
                 // Handle notifications (non-response messages)
                 switch (type)
                 {
-                    case "connection": // TODO: Handle connection to websocket
-                        // If success is false show popup with message, exit game if press button OK
-                        // There will be multiple case when connection failed: token invalid, network timeout 
-                        // or connected from new session
+                    case "connection":
+                        // Handle connection error
+                        if (!success)
+                        {
+                            PopupManager.ShowError(message);
+                        }
                         break;
                     case "reconnectGame":
                         // TODO: Handle reconnect to game if client disconnect
@@ -109,7 +110,12 @@ namespace Core
                         EventManager.emitter.Emit(EventManager.START_GAME, data);
                         break;
                     case "playerKicked":
-                        // TODO: switch to main scene and show popup user has been kicked by host
+                        // switch to main scene and show popup user has been kicked by host
+                        if (success)
+                        {
+                            SceneManagerCustom.Instance.LoadScene(SceneManagerCustom.SceneMain);
+                            PopupManager.ShowMessage(message);
+                        }
                         break;
                     case "roomUpdate":
                         EventManager.emitter.Emit(EventManager.ROOM_UPDATE, data);

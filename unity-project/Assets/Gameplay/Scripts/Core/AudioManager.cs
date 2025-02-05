@@ -1,14 +1,10 @@
-using System.Collections;
 using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Core
 {
-    public class AudioManager : MonoBehaviour
+    public class AudioManager : Singleton<AudioManager>
     {
-        // Singleton instance for easier access from other scripts
-        public static AudioManager Instance { get; private set; }
-
         [Header("Define clips that used in game")]
         public AudioClip mainBGM;
         public AudioClip clickSFX;
@@ -38,20 +34,6 @@ namespace Core
             set
             {
                 sfx.volume = value;
-            }
-        }
-
-        private void Awake()
-        {
-            // Singleton pattern to ensure only one AudioManager instance
-            if (Instance == null)
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);  // Keeps AudioManager alive across scenes
-            }
-            else
-            {
-                Destroy(gameObject);
             }
         }
 

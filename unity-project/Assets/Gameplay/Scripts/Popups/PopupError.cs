@@ -14,10 +14,7 @@ namespace Popups
         public void Init(string message, UnityAction onClick = null)
         {
             text.text = message;
-            onClick ??= () =>
-            {
-                SystemManager.ExitGame();
-            };
+            onClick ??= () => SystemManager.ExitGame();
 
             btnOK.onClick.RemoveAllListeners();
             btnOK.onClick.AddListener(onClick);
