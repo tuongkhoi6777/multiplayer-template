@@ -53,7 +53,7 @@ namespace UI
         {
             try
             {
-                int currentTeam = Array.Find(StoredManager.roomData.players, player => player.id == StoredManager.ClientToken).team;
+                int currentTeam = Array.Find(VariableManager.roomData.players, player => player.id == VariableManager.ClientToken).team;
                 await WebSocketClient.SendMessageAsync("changeTeam", new { teamIndex = 1 - currentTeam });
             }
             catch (Exception ex)
@@ -83,13 +83,13 @@ namespace UI
         public void HandleRoomUpdate()
         {
             // Enable or disable the Start button based on whether the current client is the host
-            btnStartGame.interactable = StoredManager.roomData.host == StoredManager.ClientToken;
+            btnStartGame.interactable = VariableManager.roomData.host == VariableManager.ClientToken;
 
             // Create a new dictionary to hold the updated player information
             var newDictionary = new Dictionary<string, PlayerInfoItem>();
 
             // Iterate through the updated list of players in the room
-            foreach (var player in StoredManager.roomData.players)
+            foreach (var player in VariableManager.roomData.players)
             {
                 // Try to get the player info item based on the player's ID
                 items.TryGetValue(player.id, out PlayerInfoItem item);
@@ -130,7 +130,7 @@ namespace UI
             items = newDictionary;
 
             // Set the host player item
-            if (items.TryGetValue(StoredManager.roomData.host, out PlayerInfoItem hostItem))
+            if (items.TryGetValue(VariableManager.roomData.host, out PlayerInfoItem hostItem))
             {
                 hostItem.SetHost();
             }
@@ -139,8 +139,8 @@ namespace UI
         void OnStartGame(object[] args)
         {
             var jobject = JObject.FromObject(args[0]);
-            StoredManager.ServerAddress = jobject["serverIp"].Value<string>();
-            StoredManager.ServerPort = jobject["serverPort"].Value<ushort>();
+            VariableManager.ServerAddress = jobject["serverIp"].Value<string>();
+            VariableManager.ServerPort = jobject["serverPort"].Value<ushort>();
 
             SceneManagerCustom.Instance.LoadScene(SceneManagerCustom.SceneGamePlay);
         }

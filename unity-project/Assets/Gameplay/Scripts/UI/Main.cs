@@ -24,12 +24,12 @@ namespace UI
         {
             EventManager.emitter.On(EventManager.SELECT_ROOM, () =>
             {
-                btnJoinRoom.interactable = StoredManager.CurrentRoomId != "";
+                btnJoinRoom.interactable = VariableManager.CurrentRoomId != "";
             });
 
             btnJoinRoom.onClick.AddListener(JoinRoom);
             btnCreateRoom.onClick.AddListener(CreateRoom);
-            btnExitGame.onClick.AddListener(ExitGame);
+            btnExitGame.onClick.AddListener(SystemManager.ExitGame);
             btnRefreshList.onClick.AddListener(GetAllRooms);
         }
 
@@ -42,17 +42,17 @@ namespace UI
         {
 #if !UNITY_EDITOR
             // TESTING: set server address via command line arguments
-            string[] args = StoredManager.CommandLineArgs;
+            string[] args = VariableManager.CommandLineArgs;
             if (args.Length > 1 && !string.IsNullOrEmpty(args[1]))
             {
                 Debug.Log(args[1]);
-                StoredManager.WebSocketServer = args[1];
+                VariableManager.WebSocketServer = args[1];
             }
 #endif
 
             // TODO: get server address from steam cloud and steam token from steam SDK
             string token = SystemInfo.deviceUniqueIdentifier;
-            await WebSocketClient.StartAsync(StoredManager.WebSocketServer, token);
+            await WebSocketClient.StartAsync(VariableManager.WebSocketServer, token);
 
             GetAllRooms();
         }
@@ -88,7 +88,7 @@ namespace UI
         {
             try
             {
-                string roomName = $"{StoredManager.ClientToken}'s room";
+                string roomName = $"{VariableManager.ClientToken}'s room";
                 await WebSocketClient.SendMessageAsync("createRoom", new { roomName });
                 SceneManagerCustom.Instance.LoadScene(SceneManagerCustom.SceneLobby);
             }
@@ -97,7 +97,7 @@ namespace UI
                 Debug.LogError("Error create room: " + ex.Message);
             }
 
-            if (StoredManager.IsDebug)
+            if (VariableManager.IsDebug)
             {
                 await RoomUpdateSimulatorAsync();
             }
@@ -106,7 +106,7 @@ namespace UI
         // find and join any custom room that available
         public async void JoinRoom()
         {
-            string roomId = StoredManager.CurrentRoomId;
+            string roomId = VariableManager.CurrentRoomId;
             if (string.IsNullOrEmpty(roomId)) return;
 
             try
@@ -120,19 +120,10 @@ namespace UI
             }
         }
 
-        public void ExitGame()
-        {
-            Application.Quit();
-
-#if UNITY_EDITOR
-            EditorApplication.isPlaying = false; // Stop play mode in the editor
-#endif
-        }
-
         public async Task RoomUpdateSimulatorAsync()
         {
             var list = new List<PlayerRoomInfo>();
-            string id = StoredManager.ClientToken;
+            string id = VariableManager.ClientToken;
             string roomName = "";
             string host = id;
 

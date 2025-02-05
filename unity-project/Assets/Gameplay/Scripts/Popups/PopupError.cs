@@ -2,7 +2,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.Events;
-using System;
+using Core;
 
 namespace Popups
 {
@@ -10,10 +10,16 @@ namespace Popups
     {
         public TextMeshProUGUI text;
         public Button btnOK;
+
         public void Init(string message, UnityAction onClick = null)
         {
             text.text = message;
-            onClick ??= Application.Quit;
+            onClick ??= () =>
+            {
+                SystemManager.ExitGame();
+            };
+
+            btnOK.onClick.RemoveAllListeners();
             btnOK.onClick.AddListener(onClick);
         }
     }

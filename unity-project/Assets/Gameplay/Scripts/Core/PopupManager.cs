@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 using Popups;
+using System.Linq;
 
 namespace Core
 {
@@ -95,7 +96,10 @@ namespace Core
         {
             // Find the popup by enum and hide it
             string name = Instance.Popups[(int)popupEnum].name;
-            Transform popupTransform = Instance.Active.Find(name); // Assuming popups are directly under Active
+
+            // Assuming popups are directly under Active
+            // Find first popup which has same name, reverse to find from bottom
+            Transform popupTransform = Instance.Active.Cast<Transform>().Reverse().FirstOrDefault(t => t.name == name);
             if (popupTransform != null)
             {
                 HidePopup(popupTransform.gameObject);
@@ -105,12 +109,7 @@ namespace Core
         // Helper method to get Popup enum from name (this will be used when returning to pool)
         private Popup GetPopupEnumByName(string name)
         {
-            foreach (Popup popupEnum in System.Enum.GetValues(typeof(Popup)))
-            {
-                if (Popups[(int)popupEnum].name == name)
-                    return popupEnum;
-            }
-            return Popup.Error; // Default fallback, should be handled more gracefully
+            return (Popup)Popups.FindIndex(e => e.name == name);
         }
 
         // Show an error popup with a custom message
@@ -120,6 +119,15 @@ namespace Core
             popup.GetComponent<PopupError>().Init(message);
 
             Debug.LogError(message);
+        }
+
+        // Show a notify popup with a custom message
+        public static void ShowMessage(string message)
+        {
+            var popup = ShowPopup(Popup.Message);
+            popup.GetComponent<PopupMessage>().Init(message);
+
+            Debug.Log(message);
         }
     }
 }

@@ -85,7 +85,7 @@ namespace GamePlay
         // this method is called after client is connect
         public override void OnClientAuthenticate()
         {
-            NetworkClient.Send(new AuthRequestMessage { token = StoredManager.ClientToken });
+            NetworkClient.Send(new AuthRequestMessage { token = VariableManager.ClientToken });
         }
     }
 }

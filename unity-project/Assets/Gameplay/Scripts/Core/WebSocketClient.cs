@@ -17,9 +17,9 @@ namespace Core
         public static async Task StartAsync(string server, string token)
         {
             // TODO: get token from steam
-            StoredManager.ClientToken = token;
+            VariableManager.ClientToken = token;
 
-            if (StoredManager.IsDebug) return;
+            if (VariableManager.IsDebug) return;
 
             ws = new ClientWebSocket();
 
@@ -120,7 +120,7 @@ namespace Core
 
         public static Task<object> SendMessageAsync(string type, object payload)
         {
-            if (StoredManager.IsDebug) return Task.FromResult(MockApis(type));
+            if (VariableManager.IsDebug) return Task.FromResult(MockApis(type));
 
             string key = Guid.NewGuid().ToString();
             var message = new { type, payload, key };

@@ -29,7 +29,7 @@ namespace GamePlay
         {
             Instance = this;
 
-            CursorManager.HideCursor();
+            SystemManager.HideCursor();
         }
 
         public async void StartGameServer(PlayerRoomInfo[] playerRoomInfos)
@@ -82,10 +82,7 @@ namespace GamePlay
             await Task.Delay(1000);
 
             // exit game server
-            Application.Quit();
-#if UNITY_EDITOR
-            EditorApplication.isPlaying = false; // Stop play mode in the editor
-#endif
+            SystemManager.ExitGame();
         }
 
         [ClientRpc]
@@ -97,7 +94,7 @@ namespace GamePlay
             // TODO: show end scene or result scene shere
             SceneManagerCustom.Instance.LoadScene(SceneManagerCustom.SceneLobby);
 
-            CursorManager.ShowCursor();
+            SystemManager.ShowCursor();
         }
 
         public void EndRoundServer()

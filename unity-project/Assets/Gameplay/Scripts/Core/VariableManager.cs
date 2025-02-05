@@ -3,8 +3,8 @@ using UI;
 
 namespace Core
 {
-    // Use as goblal variables that can access from every where
-    public class StoredManager
+    // A class that stored all goblal variables that can access from every where
+    public class VariableManager
     {
         public static string WebSocketServer = "ws://192.168.1.75:8080";
         public static string ServerAddress = "127.0.0.1";
@@ -12,7 +12,7 @@ namespace Core
         public static string ClientToken = "";
         public static string CurrentRoomId = "";
         public static RoomData roomData = new();
-        public static readonly bool IsDebug = false;
+        public static readonly bool IsDebug = true;
         public static string[] CommandLineArgs = Environment.GetCommandLineArgs();
     }
 }

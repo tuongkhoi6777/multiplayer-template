@@ -14,7 +14,7 @@ namespace GamePlay
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
             
-            if (StoredManager.IsDebug)
+            if (VariableManager.IsDebug)
             {
                 gameObject.AddComponent<NetworkManagerHUD>();
                 return;
@@ -25,7 +25,7 @@ namespace GamePlay
             {
                 // Retrieve command line arguments
                 // Deserialize into a JObject
-                JObject parsedJson = JObject.Parse(StoredManager.CommandLineArgs[1]);
+                JObject parsedJson = JObject.Parse(VariableManager.CommandLineArgs[1]);
 
                 // Accessing values dynamically
                 (transport as KcpTransport).port = parsedJson["port"].Value<ushort>();
@@ -38,8 +38,8 @@ namespace GamePlay
             }
             else
             {
-                networkAddress = StoredManager.ServerAddress;
-                (transport as KcpTransport).port = StoredManager.ServerPort;
+                networkAddress = VariableManager.ServerAddress;
+                (transport as KcpTransport).port = VariableManager.ServerPort;
 
                 StartClient();
             }
