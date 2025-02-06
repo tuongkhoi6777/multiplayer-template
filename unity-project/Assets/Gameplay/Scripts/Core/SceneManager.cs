@@ -6,11 +6,8 @@ using TMPro;
 
 namespace Core
 {
-    public class SceneManagerCustom : MonoBehaviour
+    public class SceneManagerCustom : Singleton<SceneManagerCustom>
     {
-        // Singleton instance for easier access from other scripts
-        public static SceneManagerCustom Instance { get; private set; }
-
         [Header("Fade Animation Settings")]
         public GameObject canvas;
         public CanvasGroup blackCover;  // Reference to CanvasGroup for fade effect
@@ -24,23 +21,7 @@ namespace Core
         public static string SceneLobby = "lobby";
         public static string SceneGamePlay = "gameplay";
 
-        private void Awake()
-        {
-            // Ensure the Singleton pattern is respected
-            if (Instance == null)
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);  // Keep this instance across scenes
-
-                Init();
-            }
-            else
-            {
-                Destroy(gameObject);  // Destroy the duplicate instance
-            }
-        }
-
-        private void Init()
+        protected override void Init()
         {
             canvas.SetActive(false);
             blackCover.alpha = 0f;

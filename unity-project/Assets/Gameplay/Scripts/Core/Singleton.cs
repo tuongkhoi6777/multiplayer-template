@@ -12,7 +12,7 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
             Instance = this as T;
             DontDestroyOnLoad(gameObject);  // Keep this instance across scenes
 
-            Init(); // Since singleton only init one time
+            Init(); // After create instance call init
         }
         else
         {
@@ -20,5 +20,5 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
         }
     }
 
-    public virtual void Init() { }
+    protected virtual void Init() { }
 }

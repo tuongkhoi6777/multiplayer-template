@@ -12,9 +12,8 @@ namespace Core
         Message,
     }
 
-    public class PopupManager : MonoBehaviour
+    public class PopupManager : Singleton<PopupManager>
     {
-        public static PopupManager Instance { get; private set; }
         public Transform Active;
         public Transform Inactive;
 
@@ -22,22 +21,7 @@ namespace Core
         public List<GameObject> Popups = new(); // List of prefabs
         private Dictionary<Popup, Queue<GameObject>> PopupPools = new(); // Pool for each Popup type
 
-        private void Awake()
-        {
-            // Ensure Singleton pattern
-            if (Instance == null)
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-                Init();
-            }
-            else
-            {
-                Destroy(gameObject); // Destroy duplicate
-            }
-        }
-
-        private void Init()
+        protected override void Init()
         {
             // Initialize pools with corresponding popup types
             foreach (Popup popupEnum in System.Enum.GetValues(typeof(Popup)))
