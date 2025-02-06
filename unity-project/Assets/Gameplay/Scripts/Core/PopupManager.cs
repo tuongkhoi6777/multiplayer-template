@@ -3,6 +3,7 @@ using UnityEngine;
 using DG.Tweening;
 using Popups;
 using System.Linq;
+using UnityEngine.Events;
 
 namespace Core
 {
@@ -14,8 +15,9 @@ namespace Core
 
     public class PopupManager : Singleton<PopupManager>
     {
-        public Transform Active;
-        public Transform Inactive;
+        public Transform Active; // transform that store active popups
+        public Transform Inactive; // transform that store inactive popups
+        public GameObject Canvas; // canvas for rendering popups
 
         [Header("Popup Prefabs")]
         public List<GameObject> Popups = new(); // List of prefabs
@@ -23,6 +25,10 @@ namespace Core
 
         protected override void Init()
         {
+            Active.gameObject.SetActive(true);
+            Inactive.gameObject.SetActive(false);
+            Canvas.SetActive(false);
+
             // Initialize pools with corresponding popup types
             foreach (Popup popupEnum in System.Enum.GetValues(typeof(Popup)))
             {
@@ -47,10 +53,12 @@ namespace Core
         // Show popup by enum
         public static GameObject ShowPopup(Popup popupEnum)
         {
+            Instance.Canvas.SetActive(true); // active canvas when show popup
+
             var popup = Instance.GetPopup(popupEnum);
 
             // Set parent to Active and show the popup
-            popup.transform.SetParent(Instance.Active);
+            popup.transform.SetParent(Instance.Active, false);
             popup.SetActive(true);
 
             // Animate scaling and fading
@@ -67,11 +75,16 @@ namespace Core
             popup.GetComponent<CanvasGroup>().DOFade(0f, 0.3f).OnComplete(() =>
             {
                 popup.SetActive(false);
-                popup.transform.SetParent(Instance.Inactive); // Move to Inactive
+                popup.transform.SetParent(Instance.Inactive, false); // Move to Inactive
 
                 // Find the correct pool and enqueue the popup
                 Popup popupEnum = Instance.GetPopupEnumByName(popup.name);
                 Instance.PopupPools[popupEnum].Enqueue(popup);
+
+                if (Instance.Active.childCount == 0)
+                {
+                    Instance.Canvas.SetActive(false); // inactive canvas when no popup show
+                }
             });
         }
 
@@ -99,8 +112,12 @@ namespace Core
         // Show an error popup with a custom message
         public static void ShowError(string message)
         {
+            // exit game when click
             var popup = ShowPopup(Popup.Error);
-            popup.GetComponent<PopupError>().Init(message);
+            popup.GetComponent<PopupError>().Init(message, () =>
+            {
+                SystemManager.ExitGame();
+            });
 
             Debug.LogError(message);
         }
@@ -108,8 +125,12 @@ namespace Core
         // Show a notify popup with a custom message
         public static void ShowMessage(string message)
         {
+            // hide popup when click
             var popup = ShowPopup(Popup.Message);
-            popup.GetComponent<PopupMessage>().Init(message);
+            popup.GetComponent<PopupMessage>().Init(message, () =>
+            {
+                HidePopup(popup);
+            });
 
             Debug.Log(message);
         }

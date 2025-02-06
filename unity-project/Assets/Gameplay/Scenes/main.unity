@@ -1229,6 +1229,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Active: {fileID: 1149644923}
   Inactive: {fileID: 1740350820}
+  Canvas: {fileID: 1310122772}
   Popups:
   - {fileID: 3825529173187265348, guid: 5459c50742038b54299eb1de9f033248, type: 3}
   - {fileID: 3825529173187265348, guid: 3dfe4e10d86b2554bb758ffeec731819, type: 3}

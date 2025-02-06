@@ -11,11 +11,9 @@ namespace Popups
         public TextMeshProUGUI text;
         public Button btnOK;
 
-        public void Init(string message, UnityAction onClick = null)
+        public void Init(string message, UnityAction onClick)
         {
             text.text = message;
-            onClick ??= () => SystemManager.ExitGame();
-
             btnOK.onClick.RemoveAllListeners();
             btnOK.onClick.AddListener(onClick);
         }
