@@ -23,7 +23,7 @@ namespace GamePlay
         public Team team2 = new();
         public Transform spawn1;
         public Transform spawn2;
-        public GameState gameState = GameState.WarmUp;
+        private GameState gameState = GameState.WarmUp;
 
         void Awake()
         {
@@ -69,6 +69,9 @@ namespace GamePlay
 
         public async void EndGameServer()
         {
+            // notify to nodejs
+            SystemManager.SendToNode(EventManager.GAME_OVER);
+            
             // notify clients to end game
             RpcEndGame();
 

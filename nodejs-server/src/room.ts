@@ -7,6 +7,11 @@ import { handler } from './handleClientConnection';
 const executablePathWindows = path.resolve(__dirname, '../build-server/FPS.exe');
 const executablePathLinux = path.resolve(__dirname, '../build-linux-server/build-linux-server.x86_64');
 
+enum UNITY_MESSAGE {
+    SERVER_READY = "SERVER_READY",
+    GAME_OVER = "GAME_OVER",
+}
+
 export class Room {
     players: { team: number, data: PLAYER }[] = []; // Value of team is 0 or 1
     isGameStarted: boolean = false;
@@ -138,7 +143,7 @@ export class Room {
 
         const jsonString = JSON.stringify(initData);
 
-        const mirrorServer = execFile(executablePathLinux, [jsonString, "-batchmode", "-nographics"],
+        const mirrorServer = execFile(executablePathWindows, [jsonString, "-batchmode", "-nographics"],
             (error, stdout, stderr) => {
                 if (error) {
                     console.error('Error starting server:', error);
@@ -146,6 +151,24 @@ export class Room {
                 }
             }
         );
+
+        // handle receive message from unity
+        mirrorServer.stdout?.on('data', (data) => {
+            let str: string = data.toString().trim();
+            let message = str.split("From Unity: ")[1];
+            if (message) {
+                switch (message) {
+                    case UNITY_MESSAGE.SERVER_READY:
+                        this.notifyPlayersServerReady();
+                        break;
+                    case UNITY_MESSAGE.GAME_OVER:
+                        this.endGame();
+                        break;
+                }
+
+                console.log(str);
+            }
+        });
 
         mirrorServer.stderr?.on('data', (data) => {
             console.log('Error output from child process:', data.toString());
@@ -156,18 +179,12 @@ export class Room {
             if (code !== 0) {
                 console.error(`Unexpected error while running game server.`);
             }
-            this.endGame();
         });
-        mirrorServer.on('error', (err) => console.error('Failed to start Mirror server:', err));
 
-        setTimeout(() => {
-            this.notifyPlayersServerReady();
-        }, 15000);
+        mirrorServer.on('error', (err) => console.error('Failed to start Mirror server:', err));
     }
 
     notifyPlayersServerReady() {
-        console.log("SERVER_FORCE_READY");
-
         this.players.forEach((player) => {
             this.sendServerConnectionInfo(player.data.ws, "startGame");
             handler.registerRejoinListener(player.data, this);

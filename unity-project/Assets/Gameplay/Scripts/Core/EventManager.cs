@@ -21,6 +21,11 @@ namespace Core
         public static string START_GAME = "START_GAME";
 
         // Global events that using in multiple scenes
+        
+
+        // Events that using for communicate with nodejs (from game server)
+        public static string SERVER_READY = "SERVER_READY";
+        public static string GAME_OVER = "GAME_OVER";
     }
     
     public class EventEmitter

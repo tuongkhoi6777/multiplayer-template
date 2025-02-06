@@ -1,3 +1,4 @@
+using System;
 using Core;
 using kcp2k;
 using Mirror;
@@ -13,7 +14,7 @@ namespace GamePlay
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
-            
+
             if (VariableManager.IsDebug)
             {
                 gameObject.AddComponent<NetworkManagerHUD>();
@@ -23,6 +24,9 @@ namespace GamePlay
             // If headless, mostly dedicated server
             if (Mirror.Utils.IsHeadless())
             {
+                // Start receive message from nodejs
+                SystemManager.OnReceiveFromNode();
+
                 // Retrieve command line arguments
                 // Deserialize into a JObject
                 JObject parsedJson = JObject.Parse(VariableManager.CommandLineArgs[1]);
@@ -33,6 +37,9 @@ namespace GamePlay
 
                 // Start the server with the custom port
                 StartServer();
+
+                // Send message to nodejs that game server is ready
+                SystemManager.SendToNode(EventManager.SERVER_READY);
 
                 GameManager.Instance.StartGameServer(players);
             }
