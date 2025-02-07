@@ -21,8 +21,8 @@ class ClientConnectionHandler {
 
         let listener = () => {
             // If the same user connects from a new session, disconnect the old one
-            sendResponse(ws, 'connection', false, "Same user connected from another session!");
-            ws.close();
+            sendResponse(ws, 'disconnect', false, "Same user connected from another session!");
+            ws?.close();
         };
         emitter.on(eventName, listener);
 
@@ -43,8 +43,8 @@ class ClientConnectionHandler {
     registerRejoinListener(player: PLAYER, room: Room) {
         const eventName = this.generateRejoinRoomEventName(player.userInfo.userId);
 
-        emitter.on(eventName, (user) => {
-            room.sendServerConnectionInfo(player.ws, "rejoinGame");
+        emitter.on(eventName, (user: PLAYER) => {
+            room.sendServerConnectionInfo(user.ws, "reconnectGame");
             room.addPlayer(user);
         });
     }

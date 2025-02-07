@@ -23,8 +23,6 @@ namespace UI
 
             HandleRoomUpdate();
 
-            EventManager.emitter.On(EventManager.START_GAME, OnStartGame);
-
             btnStartGame.onClick.AddListener(StartGame);
             btnChangeTeam.onClick.AddListener(ChangeTeam);
             btnExitRoom.onClick.AddListener(ExitRoom);
@@ -33,8 +31,6 @@ namespace UI
         void OnDestroy()
         {
             Instance = null;
-
-            EventManager.emitter.Off(EventManager.START_GAME);
         }
 
         async void StartGame()
@@ -134,15 +130,6 @@ namespace UI
             {
                 hostItem.SetHost();
             }
-        }
-
-        void OnStartGame(object[] args)
-        {
-            var jobject = JObject.FromObject(args[0]);
-            VariableManager.ServerAddress = jobject["serverIp"].Value<string>();
-            VariableManager.ServerPort = jobject["serverPort"].Value<ushort>();
-
-            SceneManagerCustom.Instance.LoadScene(SceneManagerCustom.SceneGamePlay);
         }
     }
 }

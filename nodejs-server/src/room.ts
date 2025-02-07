@@ -47,7 +47,19 @@ export class Room {
 
     // Add a player to the room
     addPlayer(user: PLAYER) {
-        if (this.players.some(player => player.data.userInfo.userId === user.userInfo.userId)) {
+        let findPlayer = this.players.find(player => player.data.userInfo.userId === user.userInfo.userId);
+
+        // only rejoin allow if game is started
+        if (this.isGameStarted) {
+            if (findPlayer) {
+                findPlayer.data = user;
+                return { success: true, message: "Rejoin room success" }
+            }
+
+            return { success: false, message: "You cannot join the room as the game has already started." }
+        }
+
+        if (findPlayer) {
             return { success: false, message: "Player already joined!" };
         }
 
@@ -81,6 +93,9 @@ export class Room {
 
     // Remove a player from the room
     removePlayer(userId: string, isKicked: boolean) {
+        // Return if game is started
+        if (this.isGameStarted) return false;
+
         let index = this.findPlayerIndex(userId);
         if (index === -1) return false;
 

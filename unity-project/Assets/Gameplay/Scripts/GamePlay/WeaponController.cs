@@ -50,11 +50,13 @@ namespace GamePlay
 
         void OnEnable()
         {
+            // add player fire event listener
             EventManager.emitter.On(EventManager.PLAYER_FIRE, Fire);
         }
 
         void OnDisable()
         {
+            // remove player fire event listener
             EventManager.emitter.Off(EventManager.PLAYER_FIRE);
         }
 

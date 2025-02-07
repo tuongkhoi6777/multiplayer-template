@@ -18,10 +18,9 @@ namespace Core
 
         // Events that using in lobby scene
         public static string ROOM_UPDATE = "ROOM_UPDATE";
-        public static string START_GAME = "START_GAME";
 
         // Global events that using in multiple scenes
-        
+        public static string DISCONNECT = "DISCONNECT";
 
         // Events that using for communicate with nodejs (from game server)
         public static string SERVER_READY = "SERVER_READY";

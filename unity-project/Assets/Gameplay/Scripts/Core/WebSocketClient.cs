@@ -11,7 +11,7 @@ namespace Core
 {
     public class WebSocketClient
     {
-        private static ClientWebSocket ws;
+        private static ClientWebSocket ws = null;
         private static Dictionary<string, TaskCompletionSource<object>> responseHandlers = new();
         public static async Task StartAsync(string server, string token)
         {
@@ -47,6 +47,11 @@ namespace Core
 
             // Start receiving messages asynchronously
             await ReceiveMessagesAsync();
+        }
+
+        public static bool IsConnected()
+        {
+            return ws != null;
         }
 
         private static async Task ReceiveMessagesAsync()
@@ -103,11 +108,15 @@ namespace Core
                             PopupManager.ShowError(message);
                         }
                         break;
-                    case "reconnectGame":
-                        // TODO: Handle reconnect to game if client disconnect
-                        break;
+                    case "disconnect":
+                        {
+                            EventManager.emitter.Emit(EventManager.DISCONNECT);
+                            PopupManager.ShowError(message);
+                            break;
+                        }
+                    case "reconnectGame": // TODO: Handle reconnect to game if client disconnect
                     case "startGame":
-                        EventManager.emitter.Emit(EventManager.START_GAME, data);
+                        SystemManager.LoadSceneGameplay(data);
                         break;
                     case "playerKicked":
                         // switch to main scene and show popup user has been kicked by host

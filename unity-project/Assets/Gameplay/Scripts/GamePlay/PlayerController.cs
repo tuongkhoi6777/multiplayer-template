@@ -39,11 +39,13 @@ namespace GamePlay
 
         void OnEnable()
         {
+            // add player jump event listener
             EventManager.emitter.On(EventManager.PLAYER_JUMP, HandleJump);
         }
 
         void OnDisable()
         {
+            // remove player jump event listener
             EventManager.emitter.Off(EventManager.PLAYER_JUMP);
         }
 

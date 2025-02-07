@@ -46,7 +46,6 @@ namespace UI
         public void OnToggle(bool isOn)
         {
             VariableManager.CurrentRoomId = isOn ? roomId : "";
-            Debug.Log(VariableManager.CurrentRoomId);
             EventManager.emitter.Emit(EventManager.SELECT_ROOM);
         }
     }

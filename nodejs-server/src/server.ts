@@ -85,7 +85,9 @@ wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
         sendResponse(ws, 'connection', false, "Invalid token!");
         ws.close(); // Close the connection immediately
         return;
-    }    
+    }
+
+    console.log(`New player connected, userId: ${info.userId}`);
 
     let player: PLAYER = { ws, userInfo: info, currentRoomId: null };
     sendResponse(ws, 'connection', true, "Success!", player.userInfo);
@@ -301,11 +303,10 @@ function handlePlayerDisconnect(player: PLAYER) {
         const room = rooms.get(player.currentRoomId);
         room && room.removePlayer(player.userInfo.userId, false);
     }
-    
+
     // Clear WebSocket and user info references properly
     player.ws.terminate();
     player.ws = undefined as any;
-    player.userInfo = undefined as any;
 }
 
 // Execute when all players exit room

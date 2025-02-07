@@ -30,6 +30,15 @@ namespace GamePlay
             Instance = this;
 
             SystemManager.HideCursor();
+
+            // add disconnect event listener
+            EventManager.emitter.On(EventManager.DISCONNECT, ClientExitGame);
+        }
+
+        void OnDestroy()
+        {
+            // remove disconnect event listener
+            EventManager.emitter.Off(EventManager.DISCONNECT);
         }
 
         public async void StartGameServer(PlayerRoomInfo[] playerRoomInfos)
@@ -71,7 +80,7 @@ namespace GamePlay
         {
             // notify to nodejs
             SystemManager.SendToNode(EventManager.GAME_OVER);
-            
+
             // notify clients to end game
             RpcEndGame();
 
@@ -90,6 +99,11 @@ namespace GamePlay
 
         [ClientRpc]
         public void RpcEndGame()
+        {
+            ClientExitGame();
+        }
+
+        public void ClientExitGame()
         {
             // stop and disconnect client
             NetworkManager.singleton.StopClient();
