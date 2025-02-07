@@ -53,6 +53,7 @@ export class Room {
         if (this.isGameStarted) {
             if (findPlayer) {
                 findPlayer.data = user;
+                user.currentRoomId = this.roomId;
                 return { success: true, message: "Rejoin room success" }
             }
 
@@ -224,5 +225,7 @@ export class Room {
         this.players.forEach((player) => {
             handler.clearRejoinListeners(player.data.userInfo.userId);
         });
+
+        this.notifyRoomUpdate();
     }
 }

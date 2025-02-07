@@ -26,7 +26,7 @@ export interface SEND_MESSAGE_FORMAT {
 
 export function sendMessage(ws: WebSocket, payload: SEND_MESSAGE_FORMAT) {
     const { type, data, success, message } = payload;
-    ws.send(JSON.stringify({ type, data, success, message }));
+    ws?.send(JSON.stringify({ type, data, success, message }));
 }
 
 interface MESSAGE {
@@ -98,6 +98,7 @@ wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
         const msg = typeof data === "string" ? data : data.toString('utf8')
         const parsed: MESSAGE = JSON.parse(msg);
 
+        
         console.log(parsed);
 
         switch (parsed.type) {
@@ -162,7 +163,7 @@ export function sendResponse(ws: WebSocket, type: string, success: boolean, mess
 // Handle creating a new room
 async function handleCreateRoom(ws: WebSocket, player: PLAYER, parsed: MESSAGE) {
     const { roomName } = parsed.payload;
-    if (!roomName) return handleInvalidRequest(ws, parsed.type);
+    if (!roomName) return handleInvalidRequest(ws, parsed.key);
 
     let success = createNewRoom(player, roomName);
     if (!success) {
@@ -176,7 +177,7 @@ async function handleCreateRoom(ws: WebSocket, player: PLAYER, parsed: MESSAGE) 
 // Handle joining a room
 async function handleJoinRoom(ws: WebSocket, player: PLAYER, parsed: MESSAGE) {
     const { roomId } = parsed.payload;
-    if (!roomId) return handleInvalidRequest(ws, parsed.type);
+    if (!roomId) return handleInvalidRequest(ws, parsed.key);
 
     const room = getRoomOrNotify(ws, roomId, parsed.key);
     if (!room) return;
@@ -188,7 +189,7 @@ async function handleJoinRoom(ws: WebSocket, player: PLAYER, parsed: MESSAGE) {
 // Handle joining a room
 async function handleChangeTeam(ws: WebSocket, player: PLAYER, parsed: MESSAGE) {
     const roomId = player.currentRoomId;
-    if (!roomId) return handleInvalidRequest(ws, parsed.type);
+    if (!roomId) return handleInvalidRequest(ws, parsed.key);
 
     const { teamIndex } = parsed.payload;
     if (
@@ -197,7 +198,7 @@ async function handleChangeTeam(ws: WebSocket, player: PLAYER, parsed: MESSAGE) 
         !Number.isFinite(teamIndex) ||  // Must be finite
         teamIndex < 0                   // Must be non-negative
     ) {
-        return handleInvalidRequest(ws, parsed.type);
+        return handleInvalidRequest(ws, parsed.key);
     }
 
     const room = getRoomOrNotify(ws, roomId, parsed.key);
@@ -212,7 +213,7 @@ async function handleChangeTeam(ws: WebSocket, player: PLAYER, parsed: MESSAGE) 
 async function handleKickPlayer(ws: WebSocket, player: PLAYER, parsed: MESSAGE) {
     const { playerId } = parsed.payload;
     const roomId = player.currentRoomId;
-    if (!roomId || !playerId) return handleInvalidRequest(ws, parsed.type);
+    if (!roomId || !playerId) return handleInvalidRequest(ws, parsed.key);
 
     const room = getRoomOrNotify(ws, roomId, parsed.key);
     if (!room) return;
@@ -230,7 +231,7 @@ async function handleKickPlayer(ws: WebSocket, player: PLAYER, parsed: MESSAGE) 
 // Handle exiting a room
 async function handleExitRoom(ws: WebSocket, player: PLAYER, parsed: MESSAGE) {
     const roomId = player.currentRoomId;
-    if (!roomId) return handleInvalidRequest(ws, parsed.type);
+    if (!roomId) return handleInvalidRequest(ws, parsed.key);
 
     const room = getRoomOrNotify(ws, roomId, parsed.key);
     if (!room) return;
@@ -248,7 +249,7 @@ async function handleGetAllRooms(ws: WebSocket, parsed: MESSAGE) {
 // Handle starting the game
 async function handleStartGame(ws: WebSocket, player: PLAYER, parsed: MESSAGE) {
     const roomId = player.currentRoomId;
-    if (!roomId) return handleInvalidRequest(ws, parsed.type);
+    if (!roomId) return handleInvalidRequest(ws, parsed.key);
 
     const room = getRoomOrNotify(ws, roomId, parsed.key);
     if (!room) return;

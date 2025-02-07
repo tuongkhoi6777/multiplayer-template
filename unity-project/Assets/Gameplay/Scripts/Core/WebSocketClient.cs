@@ -51,22 +51,33 @@ namespace Core
 
         public static bool IsConnected()
         {
-            return ws != null;
+            return ws != null && ws.State == WebSocketState.Open;
         }
 
         private static async Task ReceiveMessagesAsync()
         {
             var buffer = new byte[1024];
 
-            while (ws.State == WebSocketState.Open)
+            try
             {
-                var result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-
-                if (result.MessageType == WebSocketMessageType.Text)
+                while (ws.State == WebSocketState.Open)
                 {
-                    var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                    HandleMessage(message);
+                    var result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+
+                    if (result.MessageType == WebSocketMessageType.Text)
+                    {
+                        var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                        HandleMessage(message);
+                    }
                 }
+            }
+            catch (WebSocketException ex) // handle websocket disconnected
+            {
+                PopupManager.ShowError($"WebSocket disconnected due to network issues.\nWebSocket Exception: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                PopupManager.ShowError($"Unexpected WebSocket error: {ex.Message}");
             }
         }
 
@@ -78,8 +89,6 @@ namespace Core
             object data = jobject["data"].Value<object>();
             bool success = jobject["success"].Value<bool>();
             string message = jobject["message"].Value<string>();
-
-            Debug.Log(msg);
 
             // Check if a message is a response from request or a notification by type
             // If type is a unique key then it is a response, if normal string is a notification
@@ -116,7 +125,7 @@ namespace Core
                         }
                     case "reconnectGame": // TODO: Handle reconnect to game if client disconnect
                     case "startGame":
-                        SystemManager.LoadSceneGameplay(data);
+                        SystemManager.StartGameplay(data);
                         break;
                     case "playerKicked":
                         // switch to main scene and show popup user has been kicked by host

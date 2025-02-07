@@ -66,7 +66,7 @@ namespace UI
             }
             catch (Exception ex)
             {
-                Debug.LogError("Error get rooms: " + ex.Message);
+                PopupManager.ShowMessage("Error get rooms:\n" + ex.Message);
             }
         }
 
@@ -81,7 +81,7 @@ namespace UI
             }
             catch (Exception ex)
             {
-                Debug.LogError("Error create room: " + ex.Message);
+                PopupManager.ShowMessage("Error create room:\n" + ex.Message);
             }
         }
 
@@ -98,7 +98,7 @@ namespace UI
             }
             catch (Exception ex)
             {
-                Debug.LogError("Error join room: " + ex.Message);
+                PopupManager.ShowMessage("Error join room:\n" + ex.Message);
             }
         }
     }

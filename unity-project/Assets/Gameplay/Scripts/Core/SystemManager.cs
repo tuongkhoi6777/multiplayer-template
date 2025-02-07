@@ -12,7 +12,7 @@ namespace Core
         public static async Task ConnectServer()
         {
             if (WebSocketClient.IsConnected()) return;
-            
+
 #if !UNITY_EDITOR
             // TESTING: set server address via command line arguments
             string[] args = VariableManager.CommandLineArgs;
@@ -38,7 +38,7 @@ namespace Core
             Cursor.visible = false;
         }
 
-        public static void LoadSceneGameplay(object args)
+        public static void StartGameplay(object args)
         {
             var jobject = JObject.FromObject(args);
             VariableManager.ServerAddress = jobject["serverIp"].Value<string>();

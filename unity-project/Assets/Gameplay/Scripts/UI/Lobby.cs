@@ -41,7 +41,7 @@ namespace UI
             }
             catch (Exception ex)
             {
-                Debug.LogError("Error create room: " + ex.Message);
+                PopupManager.ShowMessage("Error start game:\n" + ex.Message);
             }
         }
 
@@ -54,7 +54,7 @@ namespace UI
             }
             catch (Exception ex)
             {
-                Debug.LogError("Error create room: " + ex.Message);
+                PopupManager.ShowMessage("Error change team:\n" + ex.Message);
             }
         }
 
@@ -67,7 +67,7 @@ namespace UI
             }
             catch (Exception ex)
             {
-                Debug.LogError("Error create room: " + ex.Message);
+                PopupManager.ShowMessage("Error create room:\n" + ex.Message);
             }
         }
 
