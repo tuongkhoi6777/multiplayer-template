@@ -1,5 +1,8 @@
 {
     "root": "nodejs-server",
-    "build": "yarn build",
+    "build": {
+      "command": "yarn build"
+    },
     "start": "node dist/server.js"
-}
+  }
+  
