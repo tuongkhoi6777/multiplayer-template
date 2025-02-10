@@ -17,11 +17,9 @@ namespace Core
         {
             // TODO: get token from steam
             VariableManager.ClientToken = token;
-
             if (VariableManager.IsDebug) return;
 
             ws = new ClientWebSocket();
-
             Uri uri = new($"{server}?token={token}");
 
             try
@@ -29,19 +27,16 @@ namespace Core
                 var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10)); // Timeout 10s
                 await ws.ConnectAsync(uri, cts.Token);
             }
-            catch (WebSocketException ex)
+            catch (WebSocketException ex) // websocket error
             {
-                // websocket error
                 PopupManager.ShowError($"WebSocket connection failed: {ex.Message}");
             }
-            catch (TaskCanceledException)
+            catch (TaskCanceledException) // timeout error
             {
-                // timeout error
                 PopupManager.ShowError("Connection timed out.");
             }
-            catch (Exception ex)
+            catch (Exception ex) // other error
             {
-                // other error
                 PopupManager.ShowError($"Unexpected error: {ex.Message}");
             }
 
@@ -108,37 +103,42 @@ namespace Core
             else
             {
                 // Handle notifications (non-response messages)
-                switch (type)
-                {
-                    case "connection":
-                        // Handle connection error
-                        if (!success)
-                        {
-                            PopupManager.ShowError(message);
-                        }
+                ProcessNotification(type, success, message, data);
+            }
+        }
+
+        private static void ProcessNotification(string type, bool success, string message, object data)
+        {
+            switch (type)
+            {
+                case "connection":
+                    // Handle connection error
+                    if (!success)
+                    {
+                        PopupManager.ShowError(message);
+                    }
+                    break;
+                case "disconnect":
+                    {
+                        EventManager.emitter.Emit(EventManager.DISCONNECT);
+                        PopupManager.ShowError(message);
                         break;
-                    case "disconnect":
-                        {
-                            EventManager.emitter.Emit(EventManager.DISCONNECT);
-                            PopupManager.ShowError(message);
-                            break;
-                        }
-                    case "reconnectGame": // TODO: Handle reconnect to game if client disconnect
-                    case "startGame":
-                        SystemManager.StartGameplay(data);
-                        break;
-                    case "playerKicked":
-                        // switch to main scene and show popup user has been kicked by host
-                        if (success)
-                        {
-                            SceneManagerCustom.Instance.LoadScene(SceneManagerCustom.SceneMain);
-                            PopupManager.ShowMessage(message);
-                        }
-                        break;
-                    case "roomUpdate":
-                        EventManager.emitter.Emit(EventManager.ROOM_UPDATE, data);
-                        break;
-                }
+                    }
+                case "reconnectGame": // TODO: Handle reconnect to game if client disconnect
+                case "startGame":
+                    SystemManager.StartGameplay(data);
+                    break;
+                case "playerKicked":
+                    // switch to main scene and show popup user has been kicked by host
+                    if (success)
+                    {
+                        SceneManagerCustom.Instance.LoadScene(SceneManagerCustom.SceneMain);
+                        PopupManager.ShowMessage(message);
+                    }
+                    break;
+                case "roomUpdate":
+                    EventManager.emitter.Emit(EventManager.ROOM_UPDATE, data);
+                    break;
             }
         }
 
