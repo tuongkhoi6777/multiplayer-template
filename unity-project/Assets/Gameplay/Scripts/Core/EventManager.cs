@@ -22,7 +22,7 @@ namespace Core
         // Global events that using in multiple scenes
         public static string DISCONNECT = "DISCONNECT";
 
-        // Events that using for communicate with nodejs (from game server)
+        // Events that using for communicate with nodejs (game server)
         public static string SERVER_READY = "SERVER_READY";
         public static string GAME_OVER = "GAME_OVER";
     }

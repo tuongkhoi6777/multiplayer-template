@@ -73,6 +73,7 @@ namespace Core
                     var parts = input.Split(new string[] { "From Node: " }, StringSplitOptions.None);
                     if (parts.Length >= 2)
                     {
+                        // TODO: handle message from Nodejs
                         EventManager.emitter.Emit(parts[1]);
                     }
                 }
